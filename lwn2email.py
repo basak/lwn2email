@@ -110,7 +110,8 @@ def lwn_weekly_urls():
     of LWN's URL scheme.
 
     LWN's RSS feed seems to use http:// URLs even though https:// URLs are
-    available, so http:// is what this function returns.
+    available, so this function converts URLs to https:// URLs before returning
+    them.
     """
 
     r = urllib.request.urlopen('https://lwn.net/headlines/Features')
