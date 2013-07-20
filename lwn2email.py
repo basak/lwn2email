@@ -208,6 +208,7 @@ def get_config():
             ['.local', 'share', 'lwn2email', 'marks']
         )
     )
+    parser.add_argument('--no-email', action='store_true')
     parser.add_argument('--address')
     parser.add_argument('--username')
     parser.add_argument('--password')
@@ -240,15 +241,18 @@ def main():
         url_title_pairs, lambda pair: pair[0], config.marks_directory)
     html_fobj = get_lwn_url(
         url, username=config.username, password=config.password)
-    sendmail = subprocess.Popen(
-        ['sendmail', '-oi', '-t'], stdin=subprocess.PIPE)
-    html_to_email(
-        html_fobj, sendmail.stdin, title,
-        destination_address=config.address)
-    sendmail.stdin.close()
-    if sendmail.wait():
-        raise RuntimeError(
-            "sendmail returned with exit %d." % sendmail.returncode)
+    if not config.no_email:
+        sendmail = subprocess.Popen(
+            ['sendmail', '-oi', '-t'], stdin=subprocess.PIPE)
+        html_to_email(
+            html_fobj, sendmail.stdin, title,
+            destination_address=config.address)
+        sendmail.stdin.close()
+        if sendmail.wait():
+            raise RuntimeError(
+                "sendmail returned with exit %d." % sendmail.returncode)
+    else:
+        sys.stdout.write(html_fobj.read())
     mark(url, config.marks_directory)
 
 
