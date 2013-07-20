@@ -203,9 +203,12 @@ def get_config():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--marks-directory',
-        default=default_xdg_dir(
-            'XDG_DATA_DIR',
-            ['.local', 'share', 'lwn2email', 'marks']
+        default=os.path.join(
+            default_xdg_dir(
+                'XDG_DATA_DIR',
+                ['.local', 'share']
+            ),
+            'lwn2email', 'marks'
         )
     )
     parser.add_argument('--no-email', action='store_true')
