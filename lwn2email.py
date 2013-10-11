@@ -9,6 +9,7 @@ import errno
 import hashlib
 import http.cookiejar
 import itertools
+import io
 import os
 import re
 import subprocess
@@ -17,6 +18,7 @@ import urllib.parse
 import urllib.request
 
 import lxml.etree
+from lxml.builder import E
 
 # Any article matching this title is an LWN.net Weekly Edition article
 MATCH_TITLE = re.compile(r'^(\[\$\] )?LWN.net Weekly Edition for')
@@ -235,6 +237,23 @@ def get_config():
     return result
 
 
+def fix_html(html_fobj):
+    parser = lxml.etree.HTMLParser()
+    root = lxml.etree.parse(html_fobj, parser).getroot()
+    main = root.xpath("//div[@class='ArticleText']")[0]
+
+    root = E.html(
+        E.head(root.xpath("//head/title")[0]),
+        E.body(main),
+    )
+
+    for element in root.xpath("//p[@class='Cat1HL']"):
+        element.tag = 'h1'
+
+    output_bytes = lxml.etree.tostring(root, pretty_print=True, method='html')
+    return output_bytes.decode('utf-8')
+
+
 def main():
     config = get_config()
     if config.marks_directory:
@@ -245,18 +264,19 @@ def main():
         url_title_pairs, lambda pair: pair[0], config.marks_directory)
     html_fobj = get_lwn_url(
         url, username=config.username, password=config.password)
+    fixed_html = fix_html(html_fobj)
     if not config.no_email:
         sendmail = subprocess.Popen(
             ['sendmail', '-oi', '-t'], stdin=subprocess.PIPE)
         html_to_email(
-            html_fobj, sendmail.stdin, title,
+            io.StringIO(fixed_html), sendmail.stdin, title,
             destination_address=config.address)
         sendmail.stdin.close()
         if sendmail.wait():
             raise RuntimeError(
                 "sendmail returned with exit %d." % sendmail.returncode)
     else:
-        sys.stdout.write(html_fobj.read())
+        sys.stdout.write(fixed_html)
     mark(url, config.marks_directory)
 
 
