@@ -30,6 +30,8 @@ TITLE_TRANSFORMATION = (
     r'LWN: \1'
 )
 
+USER_AGENT = 'https://github.com/basak/lwn2email'
+
 
 def mkdir_p(path):
     """Create path if it doesn't exist already."""
@@ -65,6 +67,7 @@ def html_to_email(html_fobj, email_fobj, title, destination_address):
     outer.attach(inner)
     outer.add_header('To', destination_address)
     outer.add_header('Subject', title)
+    outer.add_header('User-Agent', USER_AGENT)
     email.generator.BytesGenerator(email_fobj, mangle_from_=False).flatten(
         outer)
 
@@ -85,12 +88,18 @@ def get_lwn_url(lwn_url, username, password):
             urllib.parse.urlencode(
                 {'Username': username, 'Password': password, 'target': '/'}
             ).encode('utf-8'),
-            {'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'}
+            {'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+             'User-Agent': USER_AGENT}
         )
     )
     if r.getcode() != 200:
         raise RuntimeError("LWN login failure")
-    r = opener.open(lwn_url)
+    r = opener.open(
+        urllib.request.Request(
+            lwn_url,
+            headers={'User-Agent': USER_AGENT},
+        )
+    )
     if r.getcode() != 200:
         raise RuntimeError("LWN page fetch problem")
     return r
@@ -117,7 +126,12 @@ def lwn_weekly_urls():
     them.
     """
 
-    r = urllib.request.urlopen('https://lwn.net/headlines/Features')
+    r = urllib.request.urlopen(
+        urllib.request.Request(
+            'https://lwn.net/headlines/Features',
+            headers={'User-Agent': USER_AGENT},
+        )
+    )
     if r.getcode() != 200:
         raise RuntimeError("LWN feed fetch error")
 
