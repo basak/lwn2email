@@ -100,7 +100,7 @@ def get_lwn_url(lwn_url, username, password):
         urllib.request.HTTPCookieProcessor(cj))
     r = opener.open(
         urllib.request.Request(
-            'https://lwn.net/login',
+            'https://lwn.net/Login/',
             urllib.parse.urlencode(
                 {'Username': username, 'Password': password, 'target': '/'}
             ).encode('utf-8'),
