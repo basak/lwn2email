@@ -10,8 +10,8 @@ subscription. I will respect LWN by not accepting pull requests that
 allow the script to work without a subscription.
 
 The script is a little dependent on LWN's formatting and may break if
-they make changes. However, it has not broken yet since I wrote it
-in 2013. Pull requests to improve formatting welcome.
+they make changes. However, it has only broken once since I wrote it in
+2013. Pull requests to improve formatting welcome.
 
 Quick start
 -----------
